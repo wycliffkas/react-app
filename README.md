@@ -1,68 +1,153 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with Create React App
 
-## Available Scripts
+## Run locally
+1. [Clone the repo](#1-clone-the-repo)
+2. [Run the application](#2-run-the-application)
 
-In the project directory, you can run:
+### 1. Clone the repo
 
-### `yarn start`
+Clone the repo locally. In a terminal, run:
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+$ git clone https://github.com/IBM/deploy-react-kubernetes
+```
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### 2. Run the application
+1. Install [Node.js](https://nodejs.org/en/)
+2. Run the following commands in a terminal:
 
-### `yarn test`
+```
+$ npm install
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+$ npm run build-css
 
-### `yarn build`
+$ npm run start
+```
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Verify app is running and working correctly.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Run the application using Docker
+1. [Build the image](#1-build-the-image)
+2. [Run the image](#2-run-the-image)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Prerequisites:
+1. [Create Docker account](https://cloud.docker.com/)
 
-### `yarn eject`
+2. [Install Docker CLI](https://docs.docker.com/install/)
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+3. [Retrieve and save your Docker user id](https://cloud.docker.com/)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 1. Build the image
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+In a terminal, run:
+```
+$ docker build -t $docker_username/deploy-react-kubernetes .
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Your image should be listed by running:
 
-## Learn More
+```
+$ docker images
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 2. Run the image
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+In a terminal, run:
 
-### Code Splitting
+```
+$ docker run -p 3000:3000 -d $docker_username/deploy-react-kubernetes
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+You can now access the application at http://localhost:3000
 
-### Analyzing the Bundle Size
+## Run the application on Kubernetes
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+1. [Build image.](#1-build-image)
+2. [Deploy the application](#2-deploy-the-application)
 
-### Making a Progressive Web App
+## Prerequisites
+1. [Create an account with IBM Cloud](https://cloud.ibm.com/registration/)
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+2. [Install IBM Cloud CLI](https://cloud.ibm.com/docs/cli/reference/bluemix_cli/get_started.html#getting-started)
 
-### Advanced Configuration
+3. Log into your IBM Cloud account
+```
+ibmcloud login
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+If you have a federated ID, use ibmcloud login --sso to log in to the IBM Cloud CLI.
 
-### Deployment
+4. Install the Container Registry plug-in.
+```
+ibmcloud plugin install container-registry -r Bluemix
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+5. Install the Container Service plug-in.
+```
+ibmcloud plugin install IBM-Containers -r Bluemix
+```
 
-### `yarn build` fails to minify
+6. [Install kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl)
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+7. Create cluster
+```
+ibmcloud cs cluster-create --name YOUR_CLUSTER_NAME
+```
+
+8. Configure Kubernetes cluster
+```
+$ ibmcloud cs cluster-config YOUR_CLUSTER_NAME
+```
+
+Copy and paste response in CLI
+
+9. Choose a name for your first namespace, and create that namespace. Use this namespace for the rest of the Quick Start.
+```
+$ ibmcloud cr namespace-add YOUR_NAMESPACE
+```
+
+
+### 1. Build image
+
+Build image in the IBM Container Registry:
+```
+$ ibmcloud cr build -t registry.<ibm_cloud_region>.bluemix.net/<your_namespace>/deploy-react-kubernetes .
+```
+
+### 2. Deploy the application
+
+```
+$ kubectl run deploy-react-kubernetes-deployment --image=registry.<ibm_cloud_region>.bluemix.net/<your_namespace>/deploy-react-kubernetes
+```
+
+To check how many pods are running on Kubernetes run the command:
+```
+kubectl get pods
+```
+
+Expose the app to the web by setting the port. Run the command:
+
+```
+$ kubectl expose deployment/deploy-react-kubernetes-deployment —-port=3000 —-type=NodePort
+```
+
+* To access your application. You would need the public IP address of your cluster and NodePort of the service.
+
+```
+# For clusters provisioned with IBM Cloud
+$ ibmcloud cs workers YOUR_CLUSTER_NAME
+```
+
+```
+# For details on a specific Kubernetes service
+$ kubectl describe service deploy-react-kubernetes-service
+```
+
+You can now access the application at http://IP_ADDRESS:NODE_PORT
+
+## Run the application on Kubernetes with a yaml file
+
+Note: Follow the prerequisites in 'Run the application on Kubernetes section' before executing command below.
+
+```
+kubectl create -f deployment.yaml
