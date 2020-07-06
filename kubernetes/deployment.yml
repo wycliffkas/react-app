@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wyco-react
+  labels:
+    #Project ID
+    app: crane-cloud-272420
+spec:
+  #Run two instances of our application
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: crane-cloud-272420
+    spec:
+      #Container details
+      containers:
+        - name: wyco
+          image: wyco/react-app:1.0
+          imagePullPolicy: Always
+          #Ports to expose
+          ports:
+            - containerPort: 3000
